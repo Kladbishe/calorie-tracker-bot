@@ -86,7 +86,9 @@ _FOOD_TEXT_SYSTEM_PROMPT = (
     "amount eaten), not your own independent estimate. For example, if they say '100g is 250 kcal' and "
     "435g were eaten, the result must be 250 * 435 / 100 = 1087.5 kcal, not your own rough guess for the dish. "
     "If the user describes a fraction of a whole (e.g. 'cut into 8 slices, ate 6'), carefully compute the "
-    "actual weight eaten as that fraction of the total weight. "
+    "actual weight eaten as that fraction of the total weight. If they instead give a count of WHOLE items "
+    "(e.g. '10 watermelons', '3 pizzas'), multiply that many whole units at their typical real-world weight "
+    "each — not a single small reference serving. "
     "Also write a short, casual one-sentence comment reacting to this specific meal, like a friend would — "
     "not clinical or generic. If it's notably high in fat, salt, or sugar, gently call that out (with a "
     "light, non-judgmental tone); if it's balanced or nutritious, say something encouraging; otherwise a "
@@ -253,6 +255,11 @@ class OpenAIService:
             "something right now. Given how many calories/macros they have left in their daily budget and "
             "their goal, give brief, casual, human advice — 2-4 sentences, not clinical. Say clearly whether "
             "it fits, fits in moderation, or would blow the budget, and why, based on the actual numbers. "
+            "Be careful with quantities: a count of whole items (e.g. '10 watermelons', '5 pizzas') means "
+            "that many WHOLE units at their typical real-world weight each — not 10x a 100g reference "
+            "serving. Do the math for the realistic total weight/calories first. If the total is absurdly "
+            "large for a human to physically eat, say so plainly and with a bit of humor instead of just "
+            "approving a lowball number. "
             f"Write your entire reply in {_LANGUAGE_NAMES.get(lang, 'English')}, as plain text, no JSON, no markdown."
         )
         user_prompt = (
