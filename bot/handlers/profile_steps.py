@@ -442,6 +442,10 @@ async def settings_field_entry(call: CallbackQuery, callback_data: SettingsCB, s
     lang = await _get_lang(db, user_id)
     await call.answer()
 
+    if field == "close":
+        await call.message.edit_reply_markup(reply_markup=None)
+        return
+
     if field == "basic_info":
         await _start_chain(call.message, state, ["weight", "height", "age", "gender"], lang)
         return

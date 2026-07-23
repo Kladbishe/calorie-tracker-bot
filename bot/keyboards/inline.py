@@ -151,6 +151,7 @@ def settings_menu_keyboard(lang: str) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=t(lang, "settings_field_update_weight"), callback_data=SettingsCB(field="update_weight").pack())],
         [InlineKeyboardButton(text=t(lang, "settings_field_api_key"), callback_data=SettingsCB(field="api_key").pack())],
         [InlineKeyboardButton(text=t(lang, "settings_field_language"), callback_data=SettingsCB(field="language").pack())],
+        [InlineKeyboardButton(text=t(lang, "settings_close"), callback_data=SettingsCB(field="close").pack())],
     ]
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
