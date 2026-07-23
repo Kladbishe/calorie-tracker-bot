@@ -227,6 +227,47 @@ class OpenAIService:
             except json.JSONDecodeError as e:
                 raise FoodParseError(t(lang, "ai_invalid_response")) from e
 
+    async def _chat_text(self, model: str, messages: list[dict]) -> str:
+        async def _call(msgs: list[dict]) -> str:
+            try:
+                response = await self._client.chat.completions.create(model=model, messages=msgs)
+            except openai.AuthenticationError as e:
+                raise ApiKeyInvalidError(str(e)) from e
+            return response.choices[0].message.content.strip()
+
+        return await _retry_openai(_call)(messages)
+
+    async def get_food_advice(
+        self,
+        *,
+        food_description: str,
+        remaining_kcal: float,
+        remaining_protein: float,
+        remaining_fat: float,
+        remaining_carbs: float,
+        goal: str,
+        lang: str = DEFAULT_LANGUAGE,
+    ) -> str:
+        system_prompt = (
+            "You are a friendly, practical nutrition coach. The user is asking whether they should eat "
+            "something right now. Given how many calories/macros they have left in their daily budget and "
+            "their goal, give brief, casual, human advice — 2-4 sentences, not clinical. Say clearly whether "
+            "it fits, fits in moderation, or would blow the budget, and why, based on the actual numbers. "
+            f"Write your entire reply in {_LANGUAGE_NAMES.get(lang, 'English')}, as plain text, no JSON, no markdown."
+        )
+        user_prompt = (
+            f"Remaining today: {remaining_kcal:.0f} kcal, {remaining_protein:.0f}g protein, "
+            f"{remaining_fat:.0f}g fat, {remaining_carbs:.0f}g carbs. Goal: {goal}. "
+            f'They\'re thinking about eating: "{food_description}"'
+        )
+        return await self._chat_text(
+            self._text_model,
+            [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        )
+
     async def compute_nutrition_targets(
         self,
         *,

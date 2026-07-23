@@ -132,11 +132,15 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_settings": "⚙️ Настройки",
         "btn_remaining": "📊 Остаток на сегодня",
         "btn_history": "📅 История",
+        "btn_advice": "💡 Совет",
+        "ask_advice_food": "Что хочешь съесть? Скажу, насколько это впишется в твою норму на сегодня 🤔",
+        "advice_thinking": "Секунду, прикидываю... 🤔",
         "help_text": (
             "Просто напиши, что съел — я распознаю продукты и посчитаю калории/БЖУ.\n"
             "Можно прислать фото этикетки с указанием, сколько грамм ты съел.\n\n"
             "📊 Остаток на сегодня — сколько калорий/БЖУ осталось до нормы.\n"
             "📅 История — статистика за прошлые дни.\n"
+            "💡 Совет — спросить, стоит ли съесть что-то конкретное сегодня.\n"
             "⚙️ Настройки — изменить вес/рост/возраст/цель/БЖУ/API-ключ."
         ),
         "fallback_text": "Не совсем понял. Напиши, что съел, пришли фото еды с этикеткой, или воспользуйся /help.",
@@ -268,11 +272,15 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_settings": "⚙️ Settings",
         "btn_remaining": "📊 Remaining today",
         "btn_history": "📅 History",
+        "btn_advice": "💡 Advice",
+        "ask_advice_food": "What are you thinking of eating? I'll tell you how it fits your budget for today 🤔",
+        "advice_thinking": "One sec, thinking... 🤔",
         "help_text": (
             "Just tell me what you ate — I'll recognize the food and calculate calories/macros.\n"
             "You can send a photo of a label along with how many grams you ate.\n\n"
             "📊 Remaining today — how many calories/macros are left for today.\n"
             "📅 History — stats for past days.\n"
+            "💡 Advice — ask whether a specific food fits today.\n"
             "⚙️ Settings — change weight/height/age/goal/macros/API key."
         ),
         "fallback_text": "Not sure I understood. Tell me what you ate, send a food label photo, or use /help.",
@@ -401,11 +409,15 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_settings": "⚙️ הגדרות",
         "btn_remaining": "📊 נותר להיום",
         "btn_history": "📅 היסטוריה",
+        "btn_advice": "💡 עצה",
+        "ask_advice_food": "מה בא לך לאכול? אגיד לך איך זה מתאים ליעד שלך היום 🤔",
+        "advice_thinking": "רגע, חושב... 🤔",
         "help_text": (
             "פשוט כתוב לי מה אכלת — אזהה את המזון ואחשב קלוריות/אבות מזון.\n"
             "אפשר לשלוח תמונה של תווית עם ציון כמה גרם אכלת.\n\n"
             "📊 נותר להיום — כמה קלוריות/אבות מזון נותרו עד היעד.\n"
             "📅 היסטוריה — נתונים לימים קודמים.\n"
+            "💡 עצה — לשאול אם מזון מסוים מתאים להיום.\n"
             "⚙️ הגדרות — שינוי משקל/גובה/גיל/מטרה/אבות מזון/מפתח API."
         ),
         "fallback_text": "לא הבנתי לגמרי. כתוב לי מה אכלת, שלח תמונת מזון עם תווית, או השתמש ב-/help.",

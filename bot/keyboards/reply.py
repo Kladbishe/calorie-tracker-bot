@@ -8,6 +8,7 @@ def main_menu_keyboard(lang: str) -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text=t(lang, "btn_remaining"))],
             [KeyboardButton(text=t(lang, "btn_history"))],
+            [KeyboardButton(text=t(lang, "btn_advice"))],
             [KeyboardButton(text=t(lang, "btn_settings"))],
         ],
         resize_keyboard=True,
