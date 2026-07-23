@@ -8,14 +8,9 @@ in free text or a photo — and it figures out the numbers for you via the OpenA
 Each user connects their **own** OpenAI API key (stored encrypted) — food recognition and target
 calculations run under their identity and are billed to their own OpenAI balance, not a shared key.
 
-## Screenshots
-
-<p float="left">
-  <img src="docs/screenshots/onboarding.png" width="49%" alt="Onboarding: language, API key, AI-proposed targets" />
-  <img src="docs/screenshots/food-logging.png" width="49%" alt="Free-text and photo food logging, daily progress" />
-</p>
-
 ## How it works
+
+<img src="docs/screenshots/onboarding.png" width="85%" alt="Onboarding: language, API key, AI-proposed targets" />
 
 1. On `/start`, you pick a language, paste your OpenAI API key (validated with a cheap `models.list`
    call, then stored encrypted with Fernet), and answer a few questions about yourself.
@@ -24,6 +19,9 @@ calculations run under their identity and are billed to their own OpenAI balance
 3. From then on, just message the bot what you ate — plain text or a photo of the food/label.
    The message goes to OpenAI as your own key, with a prompt asking for strict JSON back: items,
    grams, and calories/macros per item. You confirm or ask it to redo the read before it's saved.
+
+<img src="docs/screenshots/food-logging.png" width="85%" alt="Free-text and photo food logging, daily progress" />
+
 4. Everything (profile, food log, weigh-ins) lives in a single SQLite file. A background scheduler
    (APScheduler) pings you once a week to log your weight, and a small per-user "known foods" table
    lets the bot skip re-guessing a product's macros once it's seen it before.
