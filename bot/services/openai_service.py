@@ -60,6 +60,7 @@ class FoodItem:
 class FoodParseResult:
     items: list[FoodItem]
     meal_total: FoodItem
+    comment: str = ""
 
 
 _TARGETS_SYSTEM_PROMPT = (
@@ -86,9 +87,13 @@ _FOOD_TEXT_SYSTEM_PROMPT = (
     "435g were eaten, the result must be 250 * 435 / 100 = 1087.5 kcal, not your own rough guess for the dish. "
     "If the user describes a fraction of a whole (e.g. 'cut into 8 slices, ate 6'), carefully compute the "
     "actual weight eaten as that fraction of the total weight. "
+    "Also write a short, casual one-sentence comment reacting to this specific meal, like a friend would — "
+    "not clinical or generic. If it's notably high in fat, salt, or sugar, gently call that out (with a "
+    "light, non-judgmental tone); if it's balanced or nutritious, say something encouraging; otherwise a "
+    "brief neutral remark is fine. Base it on the actual numbers, not a template. "
     "Respond STRICTLY in JSON with no text outside the JSON, using this schema: "
     '{"items": [{"name": str, "grams": number, "kcal": number, "protein": number, "fat": number, "carbs": number}], '
-    '"meal_total": {"kcal": number, "protein": number, "fat": number, "carbs": number}}. '
+    '"meal_total": {"kcal": number, "protein": number, "fat": number, "carbs": number}, "comment": str}. '
     "If the text doesn't describe food at all and there's nothing to parse, return items: []."
 )
 
@@ -102,10 +107,13 @@ _FOOD_PHOTO_SYSTEM_PROMPT = (
     "from the photo. If the user describes a fraction of a whole (e.g. 'cut into 8 slices, ate 6'), "
     "carefully compute the actual weight eaten as that fraction of the total weight. "
     "If the photo shows no calorie/macro data and the caption doesn't have it either, return items: [] "
-    'and explain why in a separate "note" field. Respond STRICTLY in JSON with no text outside the JSON, '
-    "using this schema: "
+    'and explain why in a separate "note" field. Otherwise also write a short, casual one-sentence comment '
+    "reacting to this specific food, like a friend would — not clinical or generic. If it's notably high "
+    "in fat, salt, or sugar, gently call that out (light, non-judgmental tone); if it's balanced or "
+    "nutritious, say something encouraging. Base it on the actual numbers, not a template. "
+    "Respond STRICTLY in JSON with no text outside the JSON, using this schema: "
     '{"items": [{"name": str, "grams": number, "kcal": number, "protein": number, "fat": number, "carbs": number}], '
-    '"meal_total": {"kcal": number, "protein": number, "fat": number, "carbs": number}, "note": str}'
+    '"meal_total": {"kcal": number, "protein": number, "fat": number, "carbs": number}, "note": str, "comment": str}'
 )
 
 
@@ -124,6 +132,10 @@ def _known_items_hint(known_items: list[dict] | None) -> str:
     )
 
 
+def _comment_language_hint(lang: str) -> str:
+    return f"\n\nWrite the \"comment\" field in {_LANGUAGE_NAMES.get(lang, 'English')}."
+
+
 def food_item_to_dict(item: FoodItem) -> dict:
     return {"name": item.name, "grams": item.grams, "kcal": item.kcal, "protein": item.protein, "fat": item.fat, "carbs": item.carbs}
 
@@ -132,6 +144,7 @@ def food_parse_result_to_dict(result: FoodParseResult) -> dict:
     return {
         "items": [food_item_to_dict(i) for i in result.items],
         "meal_total": food_item_to_dict(result.meal_total),
+        "comment": result.comment,
     }
 
 
@@ -139,6 +152,7 @@ def food_parse_result_from_dict(data: dict) -> FoodParseResult:
     return FoodParseResult(
         items=[FoodItem(**i) for i in data["items"]],
         meal_total=FoodItem(**data["meal_total"]),
+        comment=data.get("comment", ""),
     )
 
 
@@ -172,7 +186,7 @@ def _parse_food_json(data: dict, lang: str) -> FoodParseResult:
         fat=_num(total.get("fat"), sum(i.fat for i in items)),
         carbs=_num(total.get("carbs"), sum(i.carbs for i in items)),
     )
-    return FoodParseResult(items=items, meal_total=meal_total)
+    return FoodParseResult(items=items, meal_total=meal_total, comment=data.get("comment") or "")
 
 
 class OpenAIService:
@@ -250,7 +264,7 @@ class OpenAIService:
     async def parse_food_text(
         self, text: str, known_items: list[dict] | None = None, lang: str = DEFAULT_LANGUAGE
     ) -> FoodParseResult:
-        user_content = text + _known_items_hint(known_items)
+        user_content = text + _known_items_hint(known_items) + _comment_language_hint(lang)
         data = await self._chat_json(
             self._text_model,
             [
@@ -276,8 +290,10 @@ class OpenAIService:
                 "image_url": {"url": f"data:{mime_type};base64,{b64_image}"},
             }
         ]
-        text_hint = (grams_hint or "Amount in grams not specified, estimate from the photo if possible.") + _known_items_hint(
-            known_items
+        text_hint = (
+            (grams_hint or "Amount in grams not specified, estimate from the photo if possible.")
+            + _known_items_hint(known_items)
+            + _comment_language_hint(lang)
         )
         user_content.append({"type": "text", "text": text_hint})
 

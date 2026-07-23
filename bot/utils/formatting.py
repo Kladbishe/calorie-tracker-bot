@@ -57,4 +57,6 @@ def food_summary(parse_result, lang: str) -> str:
         f"\n{t(lang, 'food_summary_total')}: {fmt_num(total.kcal)} {unit_kcal}, "
         f"{abbr_p} {fmt_num(total.protein)} / {abbr_f} {fmt_num(total.fat)} / {abbr_c} {fmt_num(total.carbs)}"
     )
+    if parse_result.comment:
+        lines.append(f"\n{parse_result.comment}")
     return "\n".join(lines)
