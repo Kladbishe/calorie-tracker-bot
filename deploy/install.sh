@@ -38,6 +38,13 @@ if ! command -v pm2 >/dev/null 2>&1; then
     fi
 fi
 
+echo "==> pm2 log rotation"
+if ! pm2 list 2>/dev/null | grep -q "pm2-logrotate"; then
+    pm2 install pm2-logrotate
+fi
+pm2 set pm2-logrotate:max_size 10M >/dev/null
+pm2 set pm2-logrotate:retain 5 >/dev/null
+
 echo "==> Starting the bot under pm2 (auto-restarts on crash)"
 pm2 delete calorie-bot >/dev/null 2>&1 || true
 pm2 start "$PROJECT_DIR/deploy/start.sh" --name calorie-bot
