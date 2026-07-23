@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 router = Router(name="food_text")
 
 
-@router.message(StateFilter(None), F.text)
+@router.message(StateFilter(None), F.text, ~F.text.startswith("/"))
 async def handle_food_text(message: Message, state: FSMContext, db, settings: Settings) -> None:
     lang = await users_repo.get_effective_language(db, message.from_user.id)
     profile = await profiles_repo.get_profile(db, message.from_user.id)
