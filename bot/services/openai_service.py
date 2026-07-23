@@ -25,6 +25,8 @@ _retry_openai = retry(
     reraise=True,
 )
 
+_LANGUAGE_NAMES = {"ru": "Russian", "en": "English", "he": "Hebrew"}
+
 
 class ApiKeyInvalidError(Exception):
     pass
@@ -67,7 +69,7 @@ _TARGETS_SYSTEM_PROMPT = (
     "and desired deficit/surplus percentage. "
     "Respond STRICTLY in JSON with no text outside the JSON, using this schema: "
     '{"tdee": int, "target_kcal": int, "target_protein": int, "target_fat": int, '
-    '"target_carbs": int, "explanation": "a short explanation, in the same language as the user\'s message"}'
+    '"target_carbs": int, "explanation": "a short explanation, in the language specified by the user"}'
 )
 
 _FOOD_TEXT_SYSTEM_PROMPT = (
@@ -218,11 +220,13 @@ class OpenAIService:
         activity_level: str,
         goal: str,
         deficit_percent: int | None,
+        lang: str = DEFAULT_LANGUAGE,
     ) -> TargetsResult:
         user_prompt = (
             f"Weight: {weight} kg, height: {height} cm, age: {age}, gender: {gender}, "
             f"activity level: {activity_level}, goal: {goal}, "
-            f"desired deficit/surplus %: {deficit_percent if deficit_percent is not None else 'suggest one yourself'}."
+            f"desired deficit/surplus %: {deficit_percent if deficit_percent is not None else 'suggest one yourself'}. "
+            f"Write the \"explanation\" field in {_LANGUAGE_NAMES.get(lang, 'English')}."
         )
         data = await self._chat_json(
             self._text_model,

@@ -313,6 +313,7 @@ async def propose_targets(message: Message, state: FSMContext, db, settings: Set
                 activity_level=profile.activity_level,
                 goal=profile.goal,
                 deficit_percent=profile.deficit_percent,
+                lang=lang,
             )
         except Exception:
             logger.exception("OpenAI target computation failed, falling back to local estimate")
