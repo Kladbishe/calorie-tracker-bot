@@ -117,8 +117,16 @@ _FOOD_PHOTO_SYSTEM_PROMPT = (
     "slice/piece), use exactly those figures as the basis for your calculation, not your own estimate "
     "from the photo. If the user describes a fraction of a whole (e.g. 'cut into 8 slices, ate 6'), "
     "carefully compute the actual weight eaten as that fraction of the total weight. "
-    "If the photo shows no calorie/macro data and the caption doesn't have it either, return items: [] "
-    'and explain why in a separate "note" field. Otherwise also write a short, casual one-sentence comment '
+    "If the full nutrition table isn't visible (e.g. only the front of the package is shown, with maybe a "
+    "marketing claim like \"18g protein\" but no full table), FIRST try to identify the exact product and "
+    "brand from the packaging, and if you recognize it as a real, well-known product you have reliable "
+    "general knowledge about from training, use its known typical nutrition facts (per 100g) as the basis "
+    "for your answer, scaled to the amount eaten — mention in the comment that this is from general "
+    "knowledge of the product, not read directly off this photo, so the user knows to double check if it "
+    "matters. Only if you cannot identify the product with real confidence, return items: [] and explain "
+    'in a separate "note" field what is missing. NEVER invent 0 or any other number when you have neither '
+    "photo data nor reliable product knowledge to base it on. "
+    "Otherwise also write a short, casual one-sentence comment "
     "reacting to this specific food, like a friend would — not clinical or generic. If it's notably high "
     "in fat, salt, or sugar, gently call that out (light, non-judgmental tone); if it's balanced or "
     "nutritious, say something encouraging. Base it on the actual numbers, not a template. "
