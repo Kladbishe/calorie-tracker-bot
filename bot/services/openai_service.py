@@ -74,9 +74,12 @@ _TARGETS_SYSTEM_PROMPT = (
 
 _FOOD_TEXT_SYSTEM_PROMPT = (
     "You are a calorie-counting assistant. The user describes food they ate in free-form text "
-    "(any language), with weights or quantities. Identify each food item, estimate its weight in "
-    "grams (if not stated explicitly, estimate from the portion description), calculate calories and "
-    "macros for each item, and sum up the total. "
+    "(any language), with or without weights or quantities. Identify each food item and estimate its "
+    "weight in grams: use the stated amount if given, otherwise estimate from any portion description "
+    "in the message, and if there's neither — assume a typical/average real-world serving size for that "
+    "specific dish (e.g. a sushi roll, a slice of pizza, a cup of coffee all have reasonable typical "
+    "portions) rather than giving up. Only return an empty item for genuinely unidentifiable text, never "
+    "just because no quantity was mentioned. Calculate calories and macros for each item, and sum the total. "
     "IMPORTANT: if the user THEMSELVES states a calorie or macro value — per 100g, per portion, per "
     "slice/piece — use exactly those figures as the basis for your calculation (scaled to the actual "
     "amount eaten), not your own independent estimate. For example, if they say '100g is 250 kcal' and "
