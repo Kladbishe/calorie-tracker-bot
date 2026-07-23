@@ -4,7 +4,6 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage
 
 from bot.config import load_settings
 from bot.db.connection import init_db
@@ -14,6 +13,7 @@ from bot.middlewares.activity_middleware import ActivityMiddleware
 from bot.middlewares.error_middleware import ErrorMiddleware
 from bot.scheduler.setup import build_scheduler
 from bot.services.encryption import init_fernet
+from bot.services.fsm_storage import SQLiteStorage
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ async def main() -> None:
     db = await init_db(settings.database_path)
 
     bot = Bot(token=settings.telegram_bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    dp = Dispatcher(storage=MemoryStorage())
+    dp = Dispatcher(storage=SQLiteStorage(db))
 
     dp.update.outer_middleware(ErrorMiddleware())
     dp.update.outer_middleware(ActivityMiddleware())

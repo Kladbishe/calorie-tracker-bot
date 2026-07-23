@@ -66,3 +66,9 @@ CREATE TABLE IF NOT EXISTS known_foods (
     updated_at TEXT NOT NULL,
     PRIMARY KEY (user_id, name_normalized)
 );
+
+CREATE TABLE IF NOT EXISTS fsm_storage (
+    key TEXT PRIMARY KEY,
+    state TEXT,
+    data TEXT
+);
