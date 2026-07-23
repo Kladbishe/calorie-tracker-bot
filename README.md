@@ -58,9 +58,14 @@ pm2 status
 
 Prefer to do it by hand, or want systemd instead of pm2? `deploy/start.sh` is the actual entry
 point (`pm2 start deploy/start.sh --name calorie-bot`, or point `deploy/calorie_bot.service`'s
-`ExecStart` at it and use `systemctl` as usual) — it runs the bot and also installs the daily DB
-backup cron job (`deploy/backup_db.sh` at 3am, logged to `logs/backup.log`), idempotently, so
-restarts never pile up duplicate cron entries.
+`ExecStart` at it and use `systemctl` as usual) — it just runs the bot, nothing else. The daily DB
+backup cron job (`deploy/backup_db.sh` at 3am, logged to `logs/backup.log`) is set up once by
+`deploy/install.sh`; if you're doing everything by hand instead, add it yourself:
+```bash
+crontab -e
+# add:
+0 3 * * * /path/to/calorie-tracker-bot/deploy/backup_db.sh >> /path/to/calorie-tracker-bot/logs/backup.log 2>&1
+```
 
 ## 📌 Good to know
 

@@ -38,6 +38,15 @@ if ! command -v pm2 >/dev/null 2>&1; then
     fi
 fi
 
+echo "==> Daily DB backup cron job"
+if command -v crontab >/dev/null 2>&1; then
+    CRON_CMD="0 3 * * * $PROJECT_DIR/deploy/backup_db.sh >> $PROJECT_DIR/logs/backup.log 2>&1"
+    ( crontab -l 2>/dev/null | grep -vF "deploy/backup_db.sh" ; echo "$CRON_CMD" ) | crontab - \
+        || echo "    Warning: couldn't update crontab, set it up yourself if you want backups." >&2
+else
+    echo "    No crontab command found — skipping automatic backups, see deploy/backup_db.sh."
+fi
+
 echo "==> pm2 log rotation"
 if ! pm2 list 2>/dev/null | grep -q "pm2-logrotate"; then
     pm2 install pm2-logrotate
