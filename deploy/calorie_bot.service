@@ -1,0 +1,18 @@
+[Unit]
+Description=Calorie Tracker Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/calorie_bot
+EnvironmentFile=/home/pi/calorie_bot/.env
+ExecStart=/home/pi/calorie_bot/deploy/start.sh
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/pi/calorie_bot/logs/systemd.log
+StandardError=append:/home/pi/calorie_bot/logs/systemd.log
+
+[Install]
+WantedBy=multi-user.target
