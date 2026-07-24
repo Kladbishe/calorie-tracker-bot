@@ -176,7 +176,8 @@ def _known_items_hint(known_items: list[dict] | None) -> str:
 
 
 def _comment_language_hint(lang: str) -> str:
-    return f"\n\nWrite the \"comment\" field in {_LANGUAGE_NAMES.get(lang, 'English')}."
+    language = _LANGUAGE_NAMES.get(lang, "English")
+    return f'\n\nWrite the "comment" field, and every item\'s "name" field, in {language} — not English, unless {language} is English.'
 
 
 def food_item_to_dict(item: FoodItem) -> dict:
