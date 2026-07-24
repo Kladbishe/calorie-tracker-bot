@@ -21,16 +21,22 @@ async def start_food_edit(message: Message, state: FSMContext, lang: str) -> Non
     pending items (possibly spanning several meal sections) into one editable total, reusing
     the same per-field edit UI as onboarding's AI-proposed targets."""
     data = await state.get_data()
-    total_kcal = total_protein = total_fat = total_carbs = total_grams = 0.0
-    for entry in data.get("pending_food", []):
-        result = food_parse_result_from_dict(entry["result"])
-        total_kcal += result.meal_total.kcal
-        total_protein += result.meal_total.protein
-        total_fat += result.meal_total.fat
-        total_carbs += result.meal_total.carbs
-        total_grams += result.meal_total.grams
+    pending = data.get("pending_food", [])
+    all_items = [item for entry in pending for item in food_parse_result_from_dict(entry["result"]).items]
+
+    total_kcal = sum(i.kcal for i in all_items)
+    total_protein = sum(i.protein for i in all_items)
+    total_fat = sum(i.fat for i in all_items)
+    total_carbs = sum(i.carbs for i in all_items)
+    total_grams = sum(i.grams for i in all_items)
+
+    # Keep the original item name when there's exactly one, so a correction gets remembered
+    # under the food's real name (e.g. "Cottage cheese") — otherwise a generic "Total" label
+    # would never match this food again in known_foods' substring lookup.
+    name = all_items[0].name if len(all_items) == 1 else t(lang, "food_summary_total")
 
     await state.update_data(
+        proposed_name=name,
         proposed_kcal=round(total_kcal),
         proposed_protein=round(total_protein),
         proposed_fat=round(total_fat),
@@ -61,7 +67,7 @@ async def process_food_edit_confirm(
 
     if callback_data.action == "accept":
         item = FoodItem(
-            name=t(lang, "food_summary_total"),
+            name=data.get("proposed_name") or t(lang, "food_summary_total"),
             grams=data.get("proposed_grams", 0),
             kcal=data["proposed_kcal"],
             protein=data["proposed_protein"],

@@ -103,8 +103,11 @@ _FOOD_TEXT_SYSTEM_PROMPT = (
     "not clinical or generic. If it's notably high in fat, salt, or sugar, gently call that out (with a "
     "light, non-judgmental tone); if it's balanced or nutritious, say something encouraging; otherwise a "
     "brief neutral remark is fine. Base it on the actual numbers, not a template. "
-    "Respond STRICTLY in JSON with no text outside the JSON, using this schema: "
-    '{"items": [{"name": str, "grams": number, "kcal": number, "protein": number, "fat": number, "carbs": number}], '
+    "Respond STRICTLY in JSON with no text outside the JSON, using this schema — note \"reasoning\" comes "
+    "FIRST: work through your per-100g reference values and the scaling math there for every item, in 1-2 "
+    "sentences per item, BEFORE settling on the final numbers below, so the final numbers follow your own "
+    "worked reasoning rather than being guessed independently of it: "
+    '{"reasoning": str, "items": [{"name": str, "grams": number, "kcal": number, "protein": number, "fat": number, "carbs": number}], '
     '"meal_total": {"kcal": number, "protein": number, "fat": number, "carbs": number}, "comment": str}. '
     "If the text doesn't describe food at all and there's nothing to parse, return items: []."
 )
@@ -149,8 +152,10 @@ _FOOD_PHOTO_SYSTEM_PROMPT = (
     "reacting to this specific food, like a friend would — not clinical or generic. If it's notably high "
     "in fat, salt, or sugar, gently call that out (light, non-judgmental tone); if it's balanced or "
     "nutritious, say something encouraging. Base it on the actual numbers, not a template. "
-    "Respond STRICTLY in JSON with no text outside the JSON, using this schema: "
-    '{"items": [{"name": str, "grams": number, "kcal": number, "protein": number, "fat": number, "carbs": number}], '
+    "Respond STRICTLY in JSON with no text outside the JSON, using this schema — note \"reasoning\" comes "
+    "FIRST: work through what you can read from the photo (or your per-100g reference knowledge of the "
+    "product) and the scaling math, in 1-2 sentences per item, BEFORE settling on the final numbers below. "
+    '{"reasoning": str, "items": [{"name": str, "grams": number, "kcal": number, "protein": number, "fat": number, "carbs": number}], '
     '"meal_total": {"kcal": number, "protein": number, "fat": number, "carbs": number}, "note": str, "comment": str}'
 )
 
@@ -266,6 +271,9 @@ class OpenAIService:
                     model=model,
                     messages=msgs,
                     response_format={"type": "json_object"},
+                    # Low temperature for factual/numeric tasks (nutrition figures) — less
+                    # run-to-run variance than the default, more consistent recall.
+                    temperature=0.2,
                 )
             except openai.AuthenticationError as e:
                 raise ApiKeyInvalidError(str(e)) from e
