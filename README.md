@@ -32,7 +32,8 @@ calculations run under their identity and are billed to their own OpenAI balance
 
 - Onboarding that calculates your daily calorie/macro targets from weight, height, age, activity
   level and goal (AI-proposed, editable field by field)
-- Log food by free text or photo — items and macros parsed automatically
+- Log food by free text or photo — items and macros parsed automatically, with a way to nudge the
+  numbers by hand if the AI's estimate is off, instead of only retyping the whole thing
 - Remembers your frequently-eaten foods so it doesn't have to guess twice
 - "Remaining today" and per-day history, with an undo/delete option for logged entries
 - Weekly weigh-in reminder

@@ -10,6 +10,7 @@ from bot.config import Settings
 from bot.db import food_log as food_log_repo
 from bot.db import profiles as profiles_repo
 from bot.db import users as users_repo
+from bot.handlers.food_edit import start_food_edit
 from bot.keyboards.inline import FoodConfirmCB, food_confirm_keyboard, manage_food_keyboard
 from bot.services import openai_service
 from bot.services.food_memory import get_known_items_hint, remember_items
@@ -105,6 +106,11 @@ async def confirm_food_photo(call: CallbackQuery, callback_data: FoodConfirmCB, 
     if callback_data.action == "fix":
         await state.clear()
         await call.message.edit_text(t(lang, "photo_fix_prompt"))
+        await call.answer()
+        return
+
+    if callback_data.action == "edit_numbers":
+        await start_food_edit(call.message, state, lang)
         await call.answer()
         return
 

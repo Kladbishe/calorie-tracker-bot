@@ -29,7 +29,7 @@ class TargetsCB(CallbackData, prefix="targets"):
 
 
 class FoodConfirmCB(CallbackData, prefix="food"):
-    action: str  # ok / fix
+    action: str  # ok / fix / edit_numbers
 
 
 class SettingsCB(CallbackData, prefix="settings"):
@@ -134,10 +134,13 @@ def _accept_label(lang: str) -> str:
 def food_confirm_keyboard(lang: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [InlineKeyboardButton(text=t(lang, "btn_food_ok"), callback_data=FoodConfirmCB(action="ok").pack())],
             [
-                InlineKeyboardButton(text=t(lang, "btn_food_ok"), callback_data=FoodConfirmCB(action="ok").pack()),
+                InlineKeyboardButton(
+                    text=t(lang, "btn_food_edit_numbers"), callback_data=FoodConfirmCB(action="edit_numbers").pack()
+                ),
                 InlineKeyboardButton(text=t(lang, "btn_food_fix"), callback_data=FoodConfirmCB(action="fix").pack()),
-            ]
+            ],
         ]
     )
 

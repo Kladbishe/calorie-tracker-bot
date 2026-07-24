@@ -8,3 +8,8 @@ class FoodTextForm(StatesGroup):
 class FoodPhotoForm(StatesGroup):
     waiting_grams = State()
     waiting_confirm = State()
+
+
+class FoodEditForm(StatesGroup):
+    waiting_confirm = State()
+    waiting_field_value = State()

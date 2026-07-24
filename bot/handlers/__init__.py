@@ -4,6 +4,7 @@ from bot.handlers import (
     admin,
     advice,
     common,
+    food_edit,
     food_photo,
     food_text,
     history,
@@ -25,6 +26,7 @@ def build_root_router() -> Router:
     root.include_router(remaining.router)
     root.include_router(history.router)
     root.include_router(advice.router)
+    root.include_router(food_edit.router)
     root.include_router(food_photo.router)
     root.include_router(food_text.router)
     root.include_router(common.router)
