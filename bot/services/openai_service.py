@@ -89,6 +89,9 @@ _FOOD_TEXT_SYSTEM_PROMPT = (
     "actual weight eaten as that fraction of the total weight. If they instead give a count of WHOLE items "
     "(e.g. '10 watermelons', '3 pizzas'), multiply that many whole units at their typical real-world weight "
     "each — not a single small reference serving. "
+    "When the user specifies a product variant — fat percentage, brand, cooking method, or similar — you "
+    "MUST base your numbers on that exact variant, never silently substitute a different one (e.g. '5% "
+    "cottage cheese' must use 5% cottage cheese's values, not 0% or 9%; '3% milk' isn't skim milk). "
     "SELF-CHECK before answering: for each item, kcal should roughly equal protein*4 + fat*9 + carbs*4 "
     "(the standard Atwater formula, small rounding differences are fine). If your kcal figure doesn't "
     "roughly match that formula given your own protein/fat/carbs numbers, your numbers are inconsistent — "
@@ -194,29 +197,49 @@ def _num(value, default: float = 0.0) -> float:
     return float(value) if value is not None else default
 
 
+def _reconcile_kcal(kcal: float, protein: float, fat: float, carbs: float) -> float:
+    """The model sometimes reports a kcal figure that's inconsistent with its own protein/fat/
+    carbs numbers (real example: P16.8/F9.6/C4.8 reported as 96 kcal, when the Atwater formula
+    on those exact macros gives ~173 kcal). In testing, the macros were consistently closer to
+    reality than the model's own kcal arithmetic, so when they disagree by a lot, trust the
+    macros and recompute kcal deterministically instead. (This slightly under/overcounts drinks
+    with significant alcohol, which isn't tracked in our schema — an accepted, rare tradeoff.)"""
+    atwater_kcal = protein * 4 + fat * 9 + carbs * 4
+    if atwater_kcal <= 0:
+        return kcal
+    if abs(kcal - atwater_kcal) / atwater_kcal > 0.15:
+        return round(atwater_kcal, 1)
+    return kcal
+
+
 def _parse_food_json(data: dict, lang: str) -> FoodParseResult:
-    items = [
-        FoodItem(
-            name=item["name"],
-            grams=_num(item.get("grams")),
-            kcal=_num(item.get("kcal")),
-            protein=_num(item.get("protein")),
-            fat=_num(item.get("fat")),
-            carbs=_num(item.get("carbs")),
+    items = []
+    for item in data.get("items", []):
+        protein, fat, carbs = _num(item.get("protein")), _num(item.get("fat")), _num(item.get("carbs"))
+        items.append(
+            FoodItem(
+                name=item["name"],
+                grams=_num(item.get("grams")),
+                kcal=_reconcile_kcal(_num(item.get("kcal")), protein, fat, carbs),
+                protein=protein,
+                fat=fat,
+                carbs=carbs,
+            )
         )
-        for item in data.get("items", [])
-    ]
     if not items:
         raise FoodParseError(data.get("note") or t(lang, "ai_no_items_recognized"))
 
     total = data.get("meal_total") or {}
+    total_protein = _num(total.get("protein"), sum(i.protein for i in items))
+    total_fat = _num(total.get("fat"), sum(i.fat for i in items))
+    total_carbs = _num(total.get("carbs"), sum(i.carbs for i in items))
     meal_total = FoodItem(
         name="Total",
         grams=sum(i.grams for i in items),
-        kcal=_num(total.get("kcal"), sum(i.kcal for i in items)),
-        protein=_num(total.get("protein"), sum(i.protein for i in items)),
-        fat=_num(total.get("fat"), sum(i.fat for i in items)),
-        carbs=_num(total.get("carbs"), sum(i.carbs for i in items)),
+        kcal=_reconcile_kcal(_num(total.get("kcal"), sum(i.kcal for i in items)), total_protein, total_fat, total_carbs),
+        protein=total_protein,
+        fat=total_fat,
+        carbs=total_carbs,
     )
     return FoodParseResult(items=items, meal_total=meal_total, comment=data.get("comment") or "")
 
