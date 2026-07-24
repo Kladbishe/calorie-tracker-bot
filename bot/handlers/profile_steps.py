@@ -24,10 +24,11 @@ from bot.keyboards.inline import (
     targets_confirm_keyboard,
 )
 from bot.keyboards.reply import main_menu_keyboard
-from bot.services import openai_service
+from bot.services import gemini_service
+from bot.services.ai_types import ApiKeyInvalidError
 from bot.services.encryption import encrypt_api_key
+from bot.services.gemini_service import GeminiService
 from bot.services.nutrition_fallback import compute_fallback_targets
-from bot.services.openai_service import ApiKeyInvalidError, OpenAIService
 from bot.states.profile_form import ProfileForm
 from bot.texts import t
 from bot.utils.validators import parse_age, parse_height, parse_target_value, parse_weight
@@ -138,22 +139,20 @@ async def process_api_key(message: Message, state: FSMContext, db, settings: Set
     raw_key = message.text.strip()
     await message.answer(t(lang, "checking_key"))
 
-    service = OpenAIService(
-        api_key=raw_key, text_model=settings.openai_text_model, vision_model=settings.openai_vision_model
-    )
+    service = GeminiService(api_key=raw_key, model=settings.gemini_model)
     try:
         await service.validate_api_key()
     except ApiKeyInvalidError:
         await message.answer(t(lang, "key_invalid"))
         return
     except Exception:
-        logger.exception("Failed to validate OpenAI API key")
+        logger.exception("Failed to validate Gemini API key")
         await message.answer(t(lang, "key_check_failed"))
         return
 
     await users_repo.ensure_user(db, message.from_user.id)
     await users_repo.set_api_key(db, message.from_user.id, encrypt_api_key(raw_key))
-    openai_service.cache_service(message.from_user.id, service)
+    gemini_service.cache_service(message.from_user.id, service)
 
     if await _after_field_saved(message, state, lang):
         return
@@ -298,9 +297,7 @@ async def propose_targets(message: Message, state: FSMContext, db, settings: Set
     profile = await profiles_repo.get_profile(db, user_id)
     await message.answer(t(lang, "computing_targets"))
 
-    service = await openai_service.get_service_for_user(
-        db, user_id, settings.openai_text_model, settings.openai_vision_model
-    )
+    service = await gemini_service.get_service_for_user(db, user_id, settings)
 
     result = None
     if service is not None:
@@ -316,7 +313,7 @@ async def propose_targets(message: Message, state: FSMContext, db, settings: Set
                 lang=lang,
             )
         except Exception:
-            logger.exception("OpenAI target computation failed, falling back to local estimate")
+            logger.exception("Gemini target computation failed, falling back to local estimate")
 
     if result is None:
         result = compute_fallback_targets(

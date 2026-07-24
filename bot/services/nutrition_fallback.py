@@ -1,4 +1,4 @@
-from bot.services.openai_service import TargetsResult
+from bot.services.ai_types import TargetsResult
 from bot.texts import t
 
 _ACTIVITY_MULTIPLIERS = {
@@ -23,7 +23,7 @@ def compute_fallback_targets(
     deficit_percent: int | None,
     lang: str,
 ) -> TargetsResult:
-    """Local Mifflin-St Jeor based estimate, used when the OpenAI call fails so onboarding
+    """Local Mifflin-St Jeor based estimate, used when the Gemini call fails so onboarding
     never gets stuck — user can still fine-tune each field afterwards."""
     if gender == "male":
         bmr = 10 * weight + 6.25 * height - 5 * age + 5

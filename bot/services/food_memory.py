@@ -1,7 +1,7 @@
 import aiosqlite
 
 from bot.db import known_foods as known_foods_repo
-from bot.services.openai_service import FoodItem
+from bot.services.ai_types import FoodItem
 
 
 async def get_known_items_hint(db: aiosqlite.Connection, user_id: int, text: str) -> list[dict]:

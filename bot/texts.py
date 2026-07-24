@@ -11,20 +11,20 @@ TEXTS: dict[str, dict[str, str]] = {
         "language_saved": "Готово ✅",
         "welcome": (
             "Привет! Я помогу считать калории и БЖУ.\n\n"
-            "Я использую твой личный OpenAI API-ключ для распознавания еды по тексту и фото — "
-            "все траты идут с твоего собственного баланса OpenAI, ключ хранится в зашифрованном виде.\n\n"
+            "Я использую твой личный Gemini API-ключ для распознавания еды по тексту и фото — "
+            "все траты идут с твоего собственного баланса Gemini, ключ хранится в зашифрованном виде.\n\n"
             "Давай настроим профиль."
         ),
         "welcome_back": "С возвращением! Просто напиши, что съел, или выбери пункт меню.",
         "ask_api_key": (
-            "Введите ваш OpenAI API-ключ (он используется только для ваших собственных запросов "
+            "Введите ваш Gemini API-ключ (он используется только для ваших собственных запросов "
             "и хранится в зашифрованном виде):"
         ),
         "checking_key": "Секунду, проверяю ключ... 🔑",
-        "key_invalid": "Ключ невалиден. Пожалуйста, введите корректный OpenAI API-ключ:",
-        "key_check_failed": "Не удалось связаться с OpenAI, чтобы проверить ключ. Попробуйте отправить ключ ещё раз чуть позже:",
+        "key_invalid": "Ключ невалиден. Пожалуйста, введите корректный Gemini API-ключ:",
+        "key_check_failed": "Не удалось связаться с Gemini, чтобы проверить ключ. Попробуйте отправить ключ ещё раз чуть позже:",
         "key_accepted_ask_weight": "Ключ принят ✅\n\nТеперь введите ваш вес в кг (например, 78.5):",
-        "settings_ask_new_api_key": "Введите новый OpenAI API-ключ:",
+        "settings_ask_new_api_key": "Введите новый Gemini API-ключ:",
         "ask_weight": "Введите ваш вес в кг (например, 78.5):",
         "weight_invalid": "Не похоже на вес. Введите число в кг, например 78.5:",
         "ask_height": "Рост в см (например, 178):",
@@ -88,10 +88,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "settings_field_api_key": "🔑 API-ключ",
         "settings_field_language": "🌐 Язык",
         "settings_close": "✖️ Закрыть",
-        "food_no_api_key": "Сначала укажи свой OpenAI API-ключ через ⚙️ Настройки.",
+        "food_no_api_key": "Сначала укажи свой Gemini API-ключ через ⚙️ Настройки.",
         "calculating": "Секунду, считаю калории... 🧮",
         "food_item_parse_failed": "Хм, не смог разобрать «{text}»: {error}",
-        "food_parse_network_error": "Не удалось связаться с OpenAI. Попробуй отправить сообщение ещё раз, пожалуйста.",
+        "food_parse_network_error": "Не удалось связаться с Gemini. Попробуй отправить сообщение ещё раз, пожалуйста.",
         "food_nothing_recognized": "Не получилось ничего распознать 🤔 Уточни, пожалуйста, что именно ты съел и сколько грамм.",
         "ai_no_items_recognized": "Не удалось распознать продукты в сообщении.",
         "ai_invalid_response": "Модель вернула некорректный ответ, попробуй переформулировать сообщение.",
@@ -154,20 +154,20 @@ TEXTS: dict[str, dict[str, str]] = {
         "language_saved": "Done ✅",
         "welcome": (
             "Hi! I'll help you track calories and macros.\n\n"
-            "I use your personal OpenAI API key to recognize food from text and photos — "
-            "all costs are billed to your own OpenAI balance, and the key is stored encrypted.\n\n"
+            "I use your personal Gemini API key to recognize food from text and photos — "
+            "all costs are billed to your own Gemini balance, and the key is stored encrypted.\n\n"
             "Let's set up your profile."
         ),
         "welcome_back": "Welcome back! Just tell me what you ate, or pick a menu option.",
         "ask_api_key": (
-            "Enter your OpenAI API key (it's used only for your own requests "
+            "Enter your Gemini API key (it's used only for your own requests "
             "and stored encrypted):"
         ),
         "checking_key": "One sec, checking the key... 🔑",
-        "key_invalid": "This key is invalid. Please enter a valid OpenAI API key:",
-        "key_check_failed": "Couldn't reach OpenAI to check the key. Please try sending it again shortly:",
+        "key_invalid": "This key is invalid. Please enter a valid Gemini API key:",
+        "key_check_failed": "Couldn't reach Gemini to check the key. Please try sending it again shortly:",
         "key_accepted_ask_weight": "Key accepted ✅\n\nNow enter your weight in kg (e.g. 78.5):",
-        "settings_ask_new_api_key": "Enter your new OpenAI API key:",
+        "settings_ask_new_api_key": "Enter your new Gemini API key:",
         "ask_weight": "Enter your weight in kg (e.g. 78.5):",
         "weight_invalid": "That doesn't look like a weight. Enter a number in kg, e.g. 78.5:",
         "ask_height": "Height in cm (e.g. 178):",
@@ -231,10 +231,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "settings_field_api_key": "🔑 API key",
         "settings_field_language": "🌐 Language",
         "settings_close": "✖️ Close",
-        "food_no_api_key": "First set your OpenAI API key via ⚙️ Settings.",
+        "food_no_api_key": "First set your Gemini API key via ⚙️ Settings.",
         "calculating": "One sec, calculating calories... 🧮",
         "food_item_parse_failed": "Hmm, couldn't recognize “{text}”: {error}",
-        "food_parse_network_error": "Couldn't reach OpenAI. Please try sending the message again.",
+        "food_parse_network_error": "Couldn't reach Gemini. Please try sending the message again.",
         "food_nothing_recognized": "Couldn't recognize anything 🤔 Please clarify what exactly you ate and how many grams.",
         "ai_no_items_recognized": "Couldn't recognize any food items in the message.",
         "ai_invalid_response": "The model returned an invalid response, try rephrasing your message.",
@@ -297,17 +297,17 @@ TEXTS: dict[str, dict[str, str]] = {
         "language_saved": "בוצע ✅",
         "welcome": (
             "היי! אני אעזור לך לעקוב אחרי קלוריות ואבות מזון.\n\n"
-            "אני משתמש במפתח ה-OpenAI API האישי שלך כדי לזהות אוכל מטקסט ותמונות — "
-            "כל העלויות מחויבות ליתרת ה-OpenAI שלך, והמפתח נשמר מוצפן.\n\n"
+            "אני משתמש במפתח ה-Gemini API האישי שלך כדי לזהות אוכל מטקסט ותמונות — "
+            "כל העלויות מחויבות ליתרת ה-Gemini שלך, והמפתח נשמר מוצפן.\n\n"
             "בוא נגדיר את הפרופיל שלך."
         ),
         "welcome_back": "ברוך שובך! פשוט כתוב לי מה אכלת, או בחר פריט מהתפריט.",
-        "ask_api_key": "הזן את מפתח ה-OpenAI API שלך (הוא משמש רק לבקשות שלך ונשמר מוצפן):",
+        "ask_api_key": "הזן את מפתח ה-Gemini API שלך (הוא משמש רק לבקשות שלך ונשמר מוצפן):",
         "checking_key": "רגע, בודק את המפתח... 🔑",
-        "key_invalid": "המפתח לא תקין. אנא הזן מפתח OpenAI API תקין:",
-        "key_check_failed": "לא הצלחתי להתחבר ל-OpenAI כדי לבדוק את המפתח. נסה לשלוח אותו שוב בעוד רגע:",
+        "key_invalid": "המפתח לא תקין. אנא הזן מפתח Gemini API תקין:",
+        "key_check_failed": "לא הצלחתי להתחבר ל-Gemini כדי לבדוק את המפתח. נסה לשלוח אותו שוב בעוד רגע:",
         "key_accepted_ask_weight": "המפתח התקבל ✅\n\nעכשיו הזן את משקלך בק\"ג (למשל 78.5):",
-        "settings_ask_new_api_key": "הזן מפתח OpenAI API חדש:",
+        "settings_ask_new_api_key": "הזן מפתח Gemini API חדש:",
         "ask_weight": "הזן את משקלך בק\"ג (למשל 78.5):",
         "weight_invalid": "זה לא נראה כמו משקל. הזן מספר בק\"ג, למשל 78.5:",
         "ask_height": "גובה בס\"מ (למשל 178):",
@@ -371,10 +371,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "settings_field_api_key": "🔑 מפתח API",
         "settings_field_language": "🌐 שפה",
         "settings_close": "✖️ סגור",
-        "food_no_api_key": "קודם הזן את מפתח ה-OpenAI API שלך דרך ⚙️ הגדרות.",
+        "food_no_api_key": "קודם הזן את מפתח ה-Gemini API שלך דרך ⚙️ הגדרות.",
         "calculating": "רגע, מחשב קלוריות... 🧮",
         "food_item_parse_failed": "הממ, לא הצלחתי לזהות את “{text}”: {error}",
-        "food_parse_network_error": "לא הצלחתי להתחבר ל-OpenAI. נסה לשלוח את ההודעה שוב בבקשה.",
+        "food_parse_network_error": "לא הצלחתי להתחבר ל-Gemini. נסה לשלוח את ההודעה שוב בבקשה.",
         "food_nothing_recognized": "לא הצלחתי לזהות שום דבר 🤔 אנא פרט מה בדיוק אכלת וכמה גרם.",
         "ai_no_items_recognized": "לא הצלחתי לזהות פריטי מזון בהודעה.",
         "ai_invalid_response": "המודל החזיר תשובה לא תקינה, נסה לנסח מחדש את ההודעה.",

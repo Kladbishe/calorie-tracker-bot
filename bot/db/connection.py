@@ -36,3 +36,7 @@ async def _migrate(conn: aiosqlite.Connection) -> None:
     if "last_seen_at" not in columns:
         await conn.execute("ALTER TABLE users ADD COLUMN last_seen_at TEXT")
         await conn.commit()
+    if "openai_api_key_encrypted" in columns and "api_key_encrypted" not in columns:
+        # Renamed when the project switched from OpenAI to Gemini.
+        await conn.execute("ALTER TABLE users RENAME COLUMN openai_api_key_encrypted TO api_key_encrypted")
+        await conn.commit()

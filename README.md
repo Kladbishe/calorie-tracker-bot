@@ -3,21 +3,21 @@
 Because "I'll just estimate the portion size" is how every diet actually goes off the rails.
 
 A Telegram bot that tracks calories and macros (protein/fat/carbs). Just tell it what you ate —
-in free text or a photo — and it figures out the numbers for you via the OpenAI API.
+in free text or a photo — and it figures out the numbers for you via the Gemini API.
 
-Each user connects their **own** OpenAI API key (stored encrypted) — food recognition and target
-calculations run under their identity and are billed to their own OpenAI balance, not a shared key.
+Each user connects their **own** Gemini API key (stored encrypted) — food recognition and target
+calculations run under their identity and are billed to their own Gemini balance, not a shared key.
 
 ## How it works
 
 <img src="docs/screenshots/onboarding.png" width="85%" alt="Onboarding: language, API key, AI-proposed targets" />
 
-1. On `/start`, you pick a language, paste your OpenAI API key (validated with a cheap `models.list`
+1. On `/start`, you pick a language, paste your Gemini API key (validated with a cheap `models.list`
    call, then stored encrypted with Fernet), and answer a few questions about yourself.
-2. OpenAI computes your TDEE and daily calorie/macro targets from that; you can accept them as-is
+2. Gemini computes your TDEE and daily calorie/macro targets from that; you can accept them as-is
    or tweak any single value before they're saved.
 3. From then on, just message the bot what you ate — plain text or a photo of the food/label.
-   The message goes to OpenAI as your own key, with a prompt asking for strict JSON back: items,
+   The message goes to Gemini as your own key, with a prompt asking for strict JSON back: items,
    grams, and calories/macros per item. You confirm or ask it to redo the read before it's saved.
 
 <img src="docs/screenshots/food-logging.png" width="85%" alt="Free-text and photo food logging, daily progress" />
@@ -26,7 +26,7 @@ calculations run under their identity and are billed to their own OpenAI balance
    (APScheduler) pings you once a week to log your weight, and a small per-user "known foods" table
    lets the bot skip re-guessing a product's macros once it's seen it before.
 5. The bot process itself only ever sees your *encrypted* key — it's decrypted in memory just long
-   enough to make the OpenAI call, using your own quota, not a shared one.
+   enough to make the Gemini call, using your own quota, not a shared one.
 
 ## Features
 
@@ -93,7 +93,7 @@ crontab -e
 - Don't rotate `ENCRYPTION_KEY` once users have saved their API keys — the old keys become
   permanently undecryptable, and everyone has to re-enter them via Settings.
 - The bot is open to any Telegram user by default — no allowlist, since everyone pays for their
-  own OpenAI usage anyway.
+  own Gemini usage anyway.
 - Sure, you could ask to use my hosted instance instead of running your own. I wouldn't recommend
   it — it's running on a Raspberry Pi, and that thing starts sweating at 3 concurrent users, let
   alone 1000. Spin up your own; it's five minutes and it won't quietly fall over on you.

@@ -11,9 +11,9 @@ from bot.db import profiles as profiles_repo
 from bot.db import users as users_repo
 from bot.handlers.food_edit import start_food_edit
 from bot.keyboards.inline import FoodConfirmCB, food_confirm_keyboard, manage_food_keyboard
-from bot.services import openai_service
+from bot.services import gemini_service
+from bot.services.ai_types import FoodParseError, food_parse_result_from_dict, food_parse_result_to_dict
 from bot.services.food_memory import get_known_items_hint, remember_items
-from bot.services.openai_service import FoodParseError, food_parse_result_from_dict, food_parse_result_to_dict
 from bot.states.food_log_states import FoodTextForm
 from bot.texts import t, t_random
 from bot.utils.dates import today_str
@@ -33,9 +33,7 @@ async def handle_food_text(message: Message, state: FSMContext, db, settings: Se
         await message.answer(t(lang, "settings_incomplete_profile"))
         return
 
-    service = await openai_service.get_service_for_user(
-        db, message.from_user.id, settings.openai_text_model, settings.openai_vision_model
-    )
+    service = await gemini_service.get_service_for_user(db, message.from_user.id, settings)
     if service is None:
         await message.answer(t(lang, "food_no_api_key"))
         return
@@ -53,7 +51,7 @@ async def handle_food_text(message: Message, state: FSMContext, db, settings: Se
             await message.answer(t(lang, "food_item_parse_failed", text=segment_text.strip()[:50], error=e))
             continue
         except Exception:
-            logger.exception("OpenAI food text parsing failed")
+            logger.exception("Gemini food text parsing failed")
             await message.answer(t(lang, "food_parse_network_error"))
             return
 

@@ -10,8 +10,8 @@ from bot.db import food_log as food_log_repo
 from bot.db import profiles as profiles_repo
 from bot.db import users as users_repo
 from bot.keyboards.reply import is_menu_button
-from bot.services import openai_service
-from bot.services.openai_service import ApiKeyInvalidError
+from bot.services import gemini_service
+from bot.services.ai_types import ApiKeyInvalidError
 from bot.states.advice_states import AdviceForm
 from bot.texts import t
 from bot.utils.dates import today_str
@@ -39,9 +39,7 @@ async def give_advice(message: Message, state: FSMContext, db, settings: Setting
     await state.clear()
 
     profile = await profiles_repo.get_profile(db, message.from_user.id)
-    service = await openai_service.get_service_for_user(
-        db, message.from_user.id, settings.openai_text_model, settings.openai_vision_model
-    )
+    service = await gemini_service.get_service_for_user(db, message.from_user.id, settings)
     if service is None:
         await message.answer(t(lang, "food_no_api_key"))
         return
@@ -65,7 +63,7 @@ async def give_advice(message: Message, state: FSMContext, db, settings: Setting
         await message.answer(t(lang, "key_invalid"))
         return
     except Exception:
-        logger.exception("OpenAI food advice request failed")
+        logger.exception("Gemini food advice request failed")
         await message.answer(t(lang, "food_parse_network_error"))
         return
 

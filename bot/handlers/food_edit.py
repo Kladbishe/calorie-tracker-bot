@@ -7,7 +7,7 @@ from bot.db import food_log as food_log_repo
 from bot.db import users as users_repo
 from bot.keyboards.inline import TargetsCB, targets_confirm_keyboard
 from bot.services.food_memory import remember_items
-from bot.services.openai_service import FoodItem, food_parse_result_from_dict
+from bot.services.ai_types import FoodItem, food_parse_result_from_dict
 from bot.states.food_log_states import FoodEditForm
 from bot.texts import t
 from bot.utils.dates import today_str

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,                 -- telegram_id
-    openai_api_key_encrypted BLOB,
+    api_key_encrypted BLOB,
     language TEXT,                          -- ru | en | he, NULL = not chosen yet
     created_at TEXT NOT NULL,
     last_seen_at TEXT

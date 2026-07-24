@@ -12,9 +12,9 @@ from bot.db import profiles as profiles_repo
 from bot.db import users as users_repo
 from bot.handlers.food_edit import start_food_edit
 from bot.keyboards.inline import FoodConfirmCB, food_confirm_keyboard, manage_food_keyboard
-from bot.services import openai_service
+from bot.services import gemini_service
+from bot.services.ai_types import FoodParseError, food_parse_result_from_dict, food_parse_result_to_dict
 from bot.services.food_memory import get_known_items_hint, remember_items
-from bot.services.openai_service import FoodParseError, food_parse_result_from_dict, food_parse_result_to_dict
 from bot.states.food_log_states import FoodPhotoForm
 from bot.texts import t, t_random
 from bot.utils.dates import today_str
@@ -33,9 +33,7 @@ async def handle_food_photo(message: Message, state: FSMContext, db, settings: S
         await message.answer(t(lang, "settings_incomplete_profile"))
         return
 
-    service = await openai_service.get_service_for_user(
-        db, message.from_user.id, settings.openai_text_model, settings.openai_vision_model
-    )
+    service = await gemini_service.get_service_for_user(db, message.from_user.id, settings)
     if service is None:
         await message.answer(t(lang, "food_no_api_key"))
         return
@@ -62,9 +60,7 @@ async def handle_photo_grams(message: Message, state: FSMContext, db, settings: 
         await message.answer(t(lang, "photo_lost_state"))
         return
 
-    service = await openai_service.get_service_for_user(
-        db, message.from_user.id, settings.openai_text_model, settings.openai_vision_model
-    )
+    service = await gemini_service.get_service_for_user(db, message.from_user.id, settings)
     await _parse_and_confirm(message, state, db, settings, service, image_b64, message.text, message.from_user.id, lang)
 
 
@@ -90,7 +86,7 @@ async def _parse_and_confirm(
         await message.answer(f"{e}{t(lang, 'photo_unreadable_suffix')}")
         return
     except Exception:
-        logger.exception("OpenAI food photo parsing failed")
+        logger.exception("Gemini food photo parsing failed")
         await state.clear()
         await message.answer(t(lang, "food_parse_network_error"))
         return

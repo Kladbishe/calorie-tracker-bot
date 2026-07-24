@@ -8,8 +8,7 @@ class Settings(BaseSettings):
     telegram_bot_token: str
     encryption_key: str
 
-    openai_text_model: str = "gpt-4o"
-    openai_vision_model: str = "gpt-4o"
+    gemini_model: str = "gemini-flash-latest"
 
     database_path: str = "./data/bot.db"
 

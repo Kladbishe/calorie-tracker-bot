@@ -19,19 +19,14 @@ async def ensure_user(db: aiosqlite.Connection, user_id: int) -> None:
 
 
 async def set_api_key(db: aiosqlite.Connection, user_id: int, encrypted_key: bytes) -> None:
-    await db.execute(
-        "UPDATE users SET openai_api_key_encrypted = ? WHERE id = ?",
-        (encrypted_key, user_id),
-    )
+    await db.execute("UPDATE users SET api_key_encrypted = ? WHERE id = ?", (encrypted_key, user_id))
     await db.commit()
 
 
 async def get_encrypted_api_key(db: aiosqlite.Connection, user_id: int) -> bytes | None:
-    cursor = await db.execute(
-        "SELECT openai_api_key_encrypted FROM users WHERE id = ?", (user_id,)
-    )
+    cursor = await db.execute("SELECT api_key_encrypted FROM users WHERE id = ?", (user_id,))
     row = await cursor.fetchone()
-    return row["openai_api_key_encrypted"] if row else None
+    return row["api_key_encrypted"] if row else None
 
 
 async def get_language(db: aiosqlite.Connection, user_id: int) -> str | None:

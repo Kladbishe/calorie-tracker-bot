@@ -1,31 +1,12 @@
-import base64
-import json
-import logging
-from dataclasses import dataclass
+"""Data types, prompts, and JSON post-processing used by bot/services/gemini_service.py.
+Kept separate from the client/API-call code so prompt wording and validation logic are
+easy to find and edit in one place."""
 
-import openai
-from openai import AsyncOpenAI
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+from dataclasses import dataclass
 
 from bot.texts import DEFAULT_LANGUAGE, t
 
-logger = logging.getLogger(__name__)
-
-RETRYABLE_ERRORS = (
-    openai.APIConnectionError,
-    openai.APITimeoutError,
-    openai.RateLimitError,
-    openai.InternalServerError,
-)
-
-_retry_openai = retry(
-    retry=retry_if_exception_type(RETRYABLE_ERRORS),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-    stop=stop_after_attempt(3),
-    reraise=True,
-)
-
-_LANGUAGE_NAMES = {"ru": "Russian", "en": "English", "he": "Hebrew"}
+LANGUAGE_NAMES = {"ru": "Russian", "en": "English", "he": "Hebrew"}
 
 
 class ApiKeyInvalidError(Exception):
@@ -63,7 +44,7 @@ class FoodParseResult:
     comment: str = ""
 
 
-_TARGETS_SYSTEM_PROMPT = (
+TARGETS_SYSTEM_PROMPT = (
     "You are a nutrition assistant. From the user's body metrics, calculate their basal metabolic "
     "rate (BMR) and total daily energy expenditure (TDEE) accounting for activity level, then propose "
     "daily target calories and macros (protein/fat/carbs) based on their goal (loss/gain/maintain) "
@@ -73,7 +54,7 @@ _TARGETS_SYSTEM_PROMPT = (
     '"target_carbs": int, "explanation": "a short explanation, in the language specified by the user"}'
 )
 
-_FOOD_TEXT_SYSTEM_PROMPT = (
+FOOD_TEXT_SYSTEM_PROMPT = (
     "You are a calorie-counting assistant. The user describes food they ate in free-form text "
     "(any language), with or without weights or quantities. Identify each food item and estimate its "
     "weight in grams: use the stated amount if given, otherwise estimate from any portion description "
@@ -112,7 +93,7 @@ _FOOD_TEXT_SYSTEM_PROMPT = (
     "If the text doesn't describe food at all and there's nothing to parse, return items: []."
 )
 
-_FOOD_PHOTO_SYSTEM_PROMPT = (
+FOOD_PHOTO_SYSTEM_PROMPT = (
     "You are a calorie-counting assistant. The user sent a photo of a product label or the food itself, "
     "which may show calories and macros per 100g. The caption or a follow-up message may state how many "
     "grams they ate, and sometimes explicit calories/macros as text. Read the data from the photo, and "
@@ -159,8 +140,21 @@ _FOOD_PHOTO_SYSTEM_PROMPT = (
     '"meal_total": {"kcal": number, "protein": number, "fat": number, "carbs": number}, "note": str, "comment": str}'
 )
 
+ADVICE_SYSTEM_PROMPT_TEMPLATE = (
+    "You are a friendly, practical nutrition coach. The user is asking whether they should eat "
+    "something right now. Given how many calories/macros they have left in their daily budget and "
+    "their goal, give brief, casual, human advice — 2-4 sentences, not clinical. Say clearly whether "
+    "it fits, fits in moderation, or would blow the budget, and why, based on the actual numbers. "
+    "Be careful with quantities: a count of whole items (e.g. '10 watermelons', '5 pizzas') means "
+    "that many WHOLE units at their typical real-world weight each — not 10x a 100g reference "
+    "serving. Do the math for the realistic total weight/calories first. If the total is absurdly "
+    "large for a human to physically eat, say so plainly and with a bit of humor instead of just "
+    "approving a lowball number. "
+    "Write your entire reply in {language}, as plain text, no JSON, no markdown."
+)
 
-def _known_items_hint(known_items: list[dict] | None) -> str:
+
+def known_items_hint(known_items: list[dict] | None) -> str:
     if not known_items:
         return ""
     lines = "\n".join(
@@ -175,8 +169,8 @@ def _known_items_hint(known_items: list[dict] | None) -> str:
     )
 
 
-def _comment_language_hint(lang: str) -> str:
-    language = _LANGUAGE_NAMES.get(lang, "English")
+def comment_language_hint(lang: str) -> str:
+    language = LANGUAGE_NAMES.get(lang, "English")
     return f'\n\nWrite the "comment" field, and every item\'s "name" field, in {language} — not English, unless {language} is English.'
 
 
@@ -200,14 +194,14 @@ def food_parse_result_from_dict(data: dict) -> FoodParseResult:
     )
 
 
-def _num(value, default: float = 0.0) -> float:
-    """Coerces a JSON value to float, treating None/missing (the model sometimes emits
+def num(value, default: float = 0.0) -> float:
+    """Coerces a JSON value to float, treating None/missing (models sometimes emit
     null instead of omitting a field) as `default` rather than raising."""
     return float(value) if value is not None else default
 
 
-def _reconcile_kcal(kcal: float, protein: float, fat: float, carbs: float) -> float:
-    """The model sometimes reports a kcal figure that's inconsistent with its own protein/fat/
+def reconcile_kcal(kcal: float, protein: float, fat: float, carbs: float) -> float:
+    """Models sometimes report a kcal figure that's inconsistent with their own protein/fat/
     carbs numbers (real example: P16.8/F9.6/C4.8 reported as 96 kcal, when the Atwater formula
     on those exact macros gives ~173 kcal). In testing, the macros were consistently closer to
     reality than the model's own kcal arithmetic, so when they disagree by a lot, trust the
@@ -221,15 +215,15 @@ def _reconcile_kcal(kcal: float, protein: float, fat: float, carbs: float) -> fl
     return kcal
 
 
-def _parse_food_json(data: dict, lang: str) -> FoodParseResult:
+def parse_food_json(data: dict, lang: str) -> FoodParseResult:
     items = []
     for item in data.get("items", []):
-        protein, fat, carbs = _num(item.get("protein")), _num(item.get("fat")), _num(item.get("carbs"))
+        protein, fat, carbs = num(item.get("protein")), num(item.get("fat")), num(item.get("carbs"))
         items.append(
             FoodItem(
                 name=item["name"],
-                grams=_num(item.get("grams")),
-                kcal=_reconcile_kcal(_num(item.get("kcal")), protein, fat, carbs),
+                grams=num(item.get("grams")),
+                kcal=reconcile_kcal(num(item.get("kcal")), protein, fat, carbs),
                 protein=protein,
                 fat=fat,
                 carbs=carbs,
@@ -239,219 +233,15 @@ def _parse_food_json(data: dict, lang: str) -> FoodParseResult:
         raise FoodParseError(data.get("note") or t(lang, "ai_no_items_recognized"))
 
     total = data.get("meal_total") or {}
-    total_protein = _num(total.get("protein"), sum(i.protein for i in items))
-    total_fat = _num(total.get("fat"), sum(i.fat for i in items))
-    total_carbs = _num(total.get("carbs"), sum(i.carbs for i in items))
+    total_protein = num(total.get("protein"), sum(i.protein for i in items))
+    total_fat = num(total.get("fat"), sum(i.fat for i in items))
+    total_carbs = num(total.get("carbs"), sum(i.carbs for i in items))
     meal_total = FoodItem(
         name="Total",
         grams=sum(i.grams for i in items),
-        kcal=_reconcile_kcal(_num(total.get("kcal"), sum(i.kcal for i in items)), total_protein, total_fat, total_carbs),
+        kcal=reconcile_kcal(num(total.get("kcal"), sum(i.kcal for i in items)), total_protein, total_fat, total_carbs),
         protein=total_protein,
         fat=total_fat,
         carbs=total_carbs,
     )
     return FoodParseResult(items=items, meal_total=meal_total, comment=data.get("comment") or "")
-
-
-class OpenAIService:
-    def __init__(self, api_key: str, text_model: str, vision_model: str):
-        self._client = AsyncOpenAI(api_key=api_key)
-        self._text_model = text_model
-        self._vision_model = vision_model
-
-    async def validate_api_key(self) -> None:
-        try:
-            await self._client.models.list()
-        except openai.AuthenticationError as e:
-            raise ApiKeyInvalidError(str(e)) from e
-
-    async def _chat_json(self, model: str, messages: list[dict], lang: str = DEFAULT_LANGUAGE) -> dict:
-        async def _call(msgs: list[dict]) -> dict:
-            try:
-                response = await self._client.chat.completions.create(
-                    model=model,
-                    messages=msgs,
-                    response_format={"type": "json_object"},
-                    # Low temperature for factual/numeric tasks (nutrition figures) — less
-                    # run-to-run variance than the default, more consistent recall.
-                    temperature=0.2,
-                )
-            except openai.AuthenticationError as e:
-                raise ApiKeyInvalidError(str(e)) from e
-            content = response.choices[0].message.content
-            return json.loads(content)
-
-        call_with_retry = _retry_openai(_call)
-        try:
-            return await call_with_retry(messages)
-        except json.JSONDecodeError:
-            logger.warning("OpenAI returned invalid JSON, retrying once with a corrective message")
-            corrective = messages + [
-                {"role": "user", "content": "Your previous response was not valid JSON. Respond with ONLY valid JSON."}
-            ]
-            try:
-                return await call_with_retry(corrective)
-            except json.JSONDecodeError as e:
-                raise FoodParseError(t(lang, "ai_invalid_response")) from e
-
-    async def _chat_text(self, model: str, messages: list[dict]) -> str:
-        async def _call(msgs: list[dict]) -> str:
-            try:
-                response = await self._client.chat.completions.create(model=model, messages=msgs)
-            except openai.AuthenticationError as e:
-                raise ApiKeyInvalidError(str(e)) from e
-            return response.choices[0].message.content.strip()
-
-        return await _retry_openai(_call)(messages)
-
-    async def get_food_advice(
-        self,
-        *,
-        food_description: str,
-        remaining_kcal: float,
-        remaining_protein: float,
-        remaining_fat: float,
-        remaining_carbs: float,
-        goal: str,
-        lang: str = DEFAULT_LANGUAGE,
-    ) -> str:
-        system_prompt = (
-            "You are a friendly, practical nutrition coach. The user is asking whether they should eat "
-            "something right now. Given how many calories/macros they have left in their daily budget and "
-            "their goal, give brief, casual, human advice — 2-4 sentences, not clinical. Say clearly whether "
-            "it fits, fits in moderation, or would blow the budget, and why, based on the actual numbers. "
-            "Be careful with quantities: a count of whole items (e.g. '10 watermelons', '5 pizzas') means "
-            "that many WHOLE units at their typical real-world weight each — not 10x a 100g reference "
-            "serving. Do the math for the realistic total weight/calories first. If the total is absurdly "
-            "large for a human to physically eat, say so plainly and with a bit of humor instead of just "
-            "approving a lowball number. "
-            f"Write your entire reply in {_LANGUAGE_NAMES.get(lang, 'English')}, as plain text, no JSON, no markdown."
-        )
-        user_prompt = (
-            f"Remaining today: {remaining_kcal:.0f} kcal, {remaining_protein:.0f}g protein, "
-            f"{remaining_fat:.0f}g fat, {remaining_carbs:.0f}g carbs. Goal: {goal}. "
-            f'They\'re thinking about eating: "{food_description}"'
-        )
-        return await self._chat_text(
-            self._text_model,
-            [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
-
-    async def compute_nutrition_targets(
-        self,
-        *,
-        weight: float,
-        height: float,
-        age: int,
-        gender: str,
-        activity_level: str,
-        goal: str,
-        deficit_percent: int | None,
-        lang: str = DEFAULT_LANGUAGE,
-    ) -> TargetsResult:
-        user_prompt = (
-            f"Weight: {weight} kg, height: {height} cm, age: {age}, gender: {gender}, "
-            f"activity level: {activity_level}, goal: {goal}, "
-            f"desired deficit/surplus %: {deficit_percent if deficit_percent is not None else 'suggest one yourself'}. "
-            f"Write the \"explanation\" field in {_LANGUAGE_NAMES.get(lang, 'English')}."
-        )
-        data = await self._chat_json(
-            self._text_model,
-            [
-                {"role": "system", "content": _TARGETS_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
-        return TargetsResult(
-            tdee=int(data["tdee"]),
-            target_kcal=int(data["target_kcal"]),
-            target_protein=int(data["target_protein"]),
-            target_fat=int(data["target_fat"]),
-            target_carbs=int(data["target_carbs"]),
-            explanation=data.get("explanation", ""),
-        )
-
-    async def parse_food_text(
-        self, text: str, known_items: list[dict] | None = None, lang: str = DEFAULT_LANGUAGE
-    ) -> FoodParseResult:
-        user_content = text + _known_items_hint(known_items) + _comment_language_hint(lang)
-        data = await self._chat_json(
-            self._text_model,
-            [
-                {"role": "system", "content": _FOOD_TEXT_SYSTEM_PROMPT},
-                {"role": "user", "content": user_content},
-            ],
-            lang=lang,
-        )
-        return _parse_food_json(data, lang)
-
-    async def parse_food_photo(
-        self,
-        image_bytes: bytes,
-        mime_type: str,
-        grams_hint: str | None,
-        known_items: list[dict] | None = None,
-        lang: str = DEFAULT_LANGUAGE,
-    ) -> FoodParseResult:
-        b64_image = base64.b64encode(image_bytes).decode()
-        user_content = [
-            {
-                "type": "image_url",
-                "image_url": {"url": f"data:{mime_type};base64,{b64_image}"},
-            }
-        ]
-        text_hint = (
-            (grams_hint or "Amount in grams not specified, estimate from the photo if possible.")
-            + _known_items_hint(known_items)
-            + _comment_language_hint(lang)
-        )
-        user_content.append({"type": "text", "text": text_hint})
-
-        data = await self._chat_json(
-            self._vision_model,
-            [
-                {"role": "system", "content": _FOOD_PHOTO_SYSTEM_PROMPT},
-                {"role": "user", "content": user_content},
-            ],
-            lang=lang,
-        )
-        return _parse_food_json(data, lang)
-
-
-_service_cache: dict[int, OpenAIService] = {}
-
-
-def invalidate_user_service(user_id: int) -> None:
-    _service_cache.pop(user_id, None)
-
-
-def get_cached_service(user_id: int) -> OpenAIService | None:
-    return _service_cache.get(user_id)
-
-
-def cache_service(user_id: int, service: OpenAIService) -> None:
-    _service_cache[user_id] = service
-
-
-async def get_service_for_user(db, user_id: int, text_model: str, vision_model: str) -> OpenAIService | None:
-    """Builds (or returns cached) OpenAIService for a user from their stored encrypted key.
-    Returns None if the user has no key stored yet. Raises InvalidToken if ENCRYPTION_KEY
-    can no longer decrypt the stored key — callers should treat this like an invalid API key."""
-    from bot.db import users as users_repo
-    from bot.services.encryption import decrypt_api_key
-
-    cached = get_cached_service(user_id)
-    if cached is not None:
-        return cached
-
-    encrypted = await users_repo.get_encrypted_api_key(db, user_id)
-    if encrypted is None:
-        return None
-
-    raw_key = decrypt_api_key(encrypted)
-    service = OpenAIService(api_key=raw_key, text_model=text_model, vision_model=vision_model)
-    cache_service(user_id, service)
-    return service
