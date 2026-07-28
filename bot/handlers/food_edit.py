@@ -74,11 +74,14 @@ async def process_food_edit_confirm(
             fat=data["proposed_fat"],
             carbs=data["proposed_carbs"],
         )
-        date = today_str(settings.timezone)
+        date = data.get("target_date") or today_str(settings.timezone)
         await food_log_repo.insert_food_entries(db, call.from_user.id, date, "unspecified", [item])
         await remember_items(db, call.from_user.id, [item])
         await state.clear()
-        await call.message.edit_text(t(lang, "food_edit_saved"))
+        if date == today_str(settings.timezone):
+            await call.message.edit_text(t(lang, "food_edit_saved"))
+        else:
+            await call.message.edit_text(t(lang, "food_saved_for_date", date=date))
         await call.answer()
         return
 

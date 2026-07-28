@@ -27,6 +27,17 @@ router = Router(name="food_text")
 
 @router.message(StateFilter(None), F.text, ~F.text.startswith("/"))
 async def handle_food_text(message: Message, state: FSMContext, db, settings: Settings) -> None:
+    await _handle_food_text(message, state, db, settings, target_date=today_str(settings.timezone))
+
+
+@router.message(FoodTextForm.waiting_text_for_date, F.text)
+async def handle_food_text_for_date(message: Message, state: FSMContext, db, settings: Settings) -> None:
+    data = await state.get_data()
+    target_date = data.get("target_date") or today_str(settings.timezone)
+    await _handle_food_text(message, state, db, settings, target_date=target_date)
+
+
+async def _handle_food_text(message: Message, state: FSMContext, db, settings: Settings, target_date: str) -> None:
     lang = await users_repo.get_effective_language(db, message.from_user.id)
     profile = await profiles_repo.get_profile(db, message.from_user.id)
     if profile is None or not profile.is_complete:
@@ -62,7 +73,7 @@ async def handle_food_text(message: Message, state: FSMContext, db, settings: Se
         await message.answer(t(lang, "food_nothing_recognized"))
         return
 
-    await state.update_data(pending_food=pending)
+    await state.update_data(pending_food=pending, target_date=target_date)
     await state.set_state(FoodTextForm.waiting_confirm)
     await message.answer("\n\n".join(summaries), reply_markup=food_confirm_keyboard(lang))
 
@@ -71,7 +82,11 @@ async def handle_food_text(message: Message, state: FSMContext, db, settings: Se
 async def confirm_food_text(call: CallbackQuery, callback_data: FoodConfirmCB, state: FSMContext, db, settings: Settings) -> None:
     lang = await users_repo.get_effective_language(db, call.from_user.id)
     if callback_data.action == "fix":
+        target_date = (await state.get_data()).get("target_date")
         await state.clear()
+        if target_date:
+            await state.update_data(target_date=target_date)
+            await state.set_state(FoodTextForm.waiting_text_for_date)
         await call.message.edit_text(t(lang, "food_fix_prompt"))
         await call.answer()
         return
@@ -82,12 +97,15 @@ async def confirm_food_text(call: CallbackQuery, callback_data: FoodConfirmCB, s
         return
 
     data = await state.get_data()
-    date = today_str(settings.timezone)
+    date = data.get("target_date") or today_str(settings.timezone)
     for entry in data.get("pending_food", []):
         result = food_parse_result_from_dict(entry["result"])
         await food_log_repo.insert_food_entries(db, call.from_user.id, date, entry["meal_type"], result.items)
         await remember_items(db, call.from_user.id, result.items)
 
     await state.clear()
-    await call.message.edit_text(t_random(lang, "food_saved"), reply_markup=manage_food_keyboard(lang))
+    if date == today_str(settings.timezone):
+        await call.message.edit_text(t_random(lang, "food_saved"), reply_markup=manage_food_keyboard(lang))
+    else:
+        await call.message.edit_text(t(lang, "food_saved_for_date", date=date))
     await call.answer()

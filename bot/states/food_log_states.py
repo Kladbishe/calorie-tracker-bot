@@ -3,6 +3,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 class FoodTextForm(StatesGroup):
     waiting_confirm = State()
+    waiting_text_for_date = State()
 
 
 class FoodPhotoForm(StatesGroup):
