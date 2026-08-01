@@ -97,24 +97,32 @@ class GeminiService:
 
         return await _retry_gemini(_call)()
 
-    async def get_food_advice(
-        self,
-        *,
-        food_description: str,
-        remaining_kcal: float,
-        remaining_protein: float,
-        remaining_fat: float,
-        remaining_carbs: float,
-        goal: str,
-        lang: str = DEFAULT_LANGUAGE,
-    ) -> str:
+    async def _generate_chat(self, system_instruction: str, history: list[dict]) -> str:
+        contents = [
+            types.Content(role=turn["role"], parts=[types.Part(text=turn["text"])]) for turn in history
+        ]
+
+        async def _call() -> str:
+            try:
+                response = await self._client.aio.models.generate_content(
+                    model=self._model,
+                    contents=contents,
+                    config=types.GenerateContentConfig(system_instruction=system_instruction),
+                )
+            except genai_errors.ClientError as e:
+                if e.code in _AUTH_ERROR_CODES:
+                    raise ApiKeyInvalidError(str(e)) from e
+                raise
+            return response.text.strip()
+
+        return await _retry_gemini(_call)()
+
+    async def chat_advice(self, *, history: list[dict], lang: str = DEFAULT_LANGUAGE) -> str:
+        """`history` is a list of {"role": "user"|"model", "text": ...} turns — the caller owns
+        building the first turn's prompt (via ai_types.build_advice_prompt) and appending each
+        new turn, so the same conversation can continue across multiple messages."""
         system_prompt = ADVICE_SYSTEM_PROMPT_TEMPLATE.format(language=LANGUAGE_NAMES.get(lang, "English"))
-        user_prompt = (
-            f"Remaining today: {remaining_kcal:.0f} kcal, {remaining_protein:.0f}g protein, "
-            f"{remaining_fat:.0f}g fat, {remaining_carbs:.0f}g carbs. Goal: {goal}. "
-            f'They\'re thinking about eating: "{food_description}"'
-        )
-        return await self._generate_text(system_prompt, user_prompt)
+        return await self._generate_chat(system_prompt, history)
 
     async def compute_nutrition_targets(
         self,

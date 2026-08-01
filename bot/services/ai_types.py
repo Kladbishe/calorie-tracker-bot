@@ -154,6 +154,22 @@ ADVICE_SYSTEM_PROMPT_TEMPLATE = (
 )
 
 
+def build_advice_prompt(
+    *,
+    food_description: str,
+    remaining_kcal: float,
+    remaining_protein: float,
+    remaining_fat: float,
+    remaining_carbs: float,
+    goal: str,
+) -> str:
+    return (
+        f"Remaining today: {remaining_kcal:.0f} kcal, {remaining_protein:.0f}g protein, "
+        f"{remaining_fat:.0f}g fat, {remaining_carbs:.0f}g carbs. Goal: {goal}. "
+        f'They\'re thinking about eating: "{food_description}"'
+    )
+
+
 def known_items_hint(known_items: list[dict] | None) -> str:
     if not known_items:
         return ""

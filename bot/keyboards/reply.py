@@ -15,6 +15,13 @@ def main_menu_keyboard(lang: str) -> ReplyKeyboardMarkup:
     )
 
 
+def advice_chat_keyboard(lang: str) -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=t(lang, "btn_exit_advice"))]],
+        resize_keyboard=True,
+    )
+
+
 def is_menu_button(message_text: str | None, key: str) -> bool:
     """Matches a reply-keyboard button regardless of which language it was rendered in —
     handlers don't know the user's language before this filter runs."""

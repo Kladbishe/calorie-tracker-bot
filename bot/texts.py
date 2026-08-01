@@ -139,8 +139,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_remaining": "📊 Остаток на сегодня",
         "btn_history": "📅 История",
         "btn_advice": "💡 Совет",
-        "ask_advice_food": "Что хочешь съесть? Скажу, насколько это впишется в твою норму на сегодня 🤔",
+        "ask_advice_food": "Что хочешь съесть? Скажу, насколько это впишется в твою норму на сегодня 🤔\n\nМожешь уточнять и спрашивать дальше — когда закончишь, нажми «🚪 Выход».",
         "advice_thinking": "Секунду, прикидываю... 🤔",
+        "btn_exit_advice": "🚪 Выход",
+        "advice_exited": "Окей, вышли из совета 👍",
         "help_text": (
             "Просто напиши, что съел — я распознаю продукты и посчитаю калории/БЖУ.\n"
             "Можно прислать фото этикетки с указанием, сколько грамм ты съел.\n\n"
@@ -285,8 +287,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_remaining": "📊 Remaining today",
         "btn_history": "📅 History",
         "btn_advice": "💡 Advice",
-        "ask_advice_food": "What are you thinking of eating? I'll tell you how it fits your budget for today 🤔",
+        "ask_advice_food": "What are you thinking of eating? I'll tell you how it fits your budget for today 🤔\n\nFeel free to ask follow-ups — tap \"🚪 Exit\" when you're done.",
         "advice_thinking": "One sec, thinking... 🤔",
+        "btn_exit_advice": "🚪 Exit",
+        "advice_exited": "Okay, exited advice chat 👍",
         "help_text": (
             "Just tell me what you ate — I'll recognize the food and calculate calories/macros.\n"
             "You can send a photo of a label along with how many grams you ate.\n\n"
@@ -428,8 +432,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "btn_remaining": "📊 נותר להיום",
         "btn_history": "📅 היסטוריה",
         "btn_advice": "💡 עצה",
-        "ask_advice_food": "מה בא לך לאכול? אגיד לך איך זה מתאים ליעד שלך היום 🤔",
+        "ask_advice_food": "מה בא לך לאכול? אגיד לך איך זה מתאים ליעד שלך היום 🤔\n\nאפשר להמשיך לשאול — כשתסיים, לחץ/י על \"🚪 יציאה\".",
         "advice_thinking": "רגע, חושב... 🤔",
+        "btn_exit_advice": "🚪 יציאה",
+        "advice_exited": "טוב, יצאת מהעצה 👍",
         "help_text": (
             "פשוט כתוב לי מה אכלת — אזהה את המזון ואחשב קלוריות/אבות מזון.\n"
             "אפשר לשלוח תמונה של תווית עם ציון כמה גרם אכלת.\n\n"
