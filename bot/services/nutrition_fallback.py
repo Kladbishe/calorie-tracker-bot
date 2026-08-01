@@ -9,7 +9,7 @@ _ACTIVITY_MULTIPLIERS = {
     "very_high": 1.9,
 }
 
-_DEFAULT_DEFICIT_PERCENT = {"loss": 15, "gain": 15, "maintain": 0}
+DEFAULT_DEFICIT_PERCENT = {"loss": 15, "gain": 15, "maintain": 0}
 
 
 def compute_fallback_targets(
@@ -32,7 +32,7 @@ def compute_fallback_targets(
 
     tdee = bmr * _ACTIVITY_MULTIPLIERS.get(activity_level, 1.375)
 
-    percent = deficit_percent if deficit_percent is not None else _DEFAULT_DEFICIT_PERCENT.get(goal, 0)
+    percent = deficit_percent if deficit_percent is not None else DEFAULT_DEFICIT_PERCENT.get(goal, 0)
     if goal == "loss":
         target_kcal = tdee * (1 - percent / 100)
     elif goal == "gain":
