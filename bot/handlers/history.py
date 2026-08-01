@@ -21,13 +21,14 @@ router = Router(name="history")
 
 
 @router.message(lambda m: is_menu_button(m.text, "btn_history"))
-async def open_history(message: Message, db) -> None:
+async def open_history(message: Message, state: FSMContext, db) -> None:
     lang = await users_repo.get_effective_language(db, message.from_user.id)
     profile = await profiles_repo.get_profile(db, message.from_user.id)
     if profile is None or not profile.is_complete:
         await message.answer(t(lang, "settings_incomplete_profile"))
         return
 
+    await state.clear()
     await message.answer(t(lang, "history_choose_period"), reply_markup=history_period_keyboard(lang))
 
 

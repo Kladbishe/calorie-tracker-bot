@@ -1,4 +1,5 @@
 from aiogram import Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from bot.config import Settings
@@ -14,13 +15,14 @@ router = Router(name="remaining")
 
 
 @router.message(lambda m: is_menu_button(m.text, "btn_remaining"))
-async def show_remaining(message: Message, db, settings: Settings) -> None:
+async def show_remaining(message: Message, state: FSMContext, db, settings: Settings) -> None:
     lang = await users_repo.get_effective_language(db, message.from_user.id)
     profile = await profiles_repo.get_profile(db, message.from_user.id)
     if profile is None or not profile.is_complete:
         await message.answer(t(lang, "settings_incomplete_profile"))
         return
 
+    await state.clear()
     report = await get_today_report(db, message.from_user.id, profile, settings.timezone, lang)
     entries = await get_today_entries(db, message.from_user.id, settings.timezone)
     markup = manage_food_keyboard(lang) if entries else None

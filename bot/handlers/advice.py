@@ -1,7 +1,6 @@
 import logging
 
 from aiogram import F, Router
-from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 router = Router(name="advice")
 
 
-@router.message(StateFilter(None), lambda m: is_menu_button(m.text, "btn_advice"))
+@router.message(lambda m: is_menu_button(m.text, "btn_advice"))
 async def ask_advice(message: Message, state: FSMContext, db) -> None:
     lang = await users_repo.get_effective_language(db, message.from_user.id)
     profile = await profiles_repo.get_profile(db, message.from_user.id)
@@ -29,6 +28,7 @@ async def ask_advice(message: Message, state: FSMContext, db) -> None:
         await message.answer(t(lang, "settings_incomplete_profile"))
         return
 
+    await state.clear()
     await state.set_state(AdviceForm.waiting_food)
     await state.update_data(advice_history=[])
     await message.answer(t(lang, "ask_advice_food"), reply_markup=advice_chat_keyboard(lang))
