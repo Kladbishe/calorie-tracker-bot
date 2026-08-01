@@ -7,9 +7,10 @@ from bot.db import profiles as profiles_repo
 from bot.db import users as users_repo
 from bot.keyboards.inline import (
     AddPastEntryCB,
+    HistoryBackCB,
     HistoryPeriodCB,
-    history_add_entry_keyboard,
     history_period_keyboard,
+    history_report_keyboard,
 )
 from bot.keyboards.reply import is_menu_button
 from bot.services.history import build_history_report
@@ -47,7 +48,14 @@ async def show_history(call: CallbackQuery, callback_data: HistoryPeriodCB, db, 
     lang = await users_repo.get_effective_language(db, call.from_user.id)
     report = await build_history_report(db, call.from_user.id, callback_data.period, settings.timezone, lang)
     dates = _addable_dates(callback_data.period, settings.timezone)
-    await call.message.edit_text(report, reply_markup=history_add_entry_keyboard(dates, lang))
+    await call.message.edit_text(report, reply_markup=history_report_keyboard(dates, lang))
+    await call.answer()
+
+
+@router.callback_query(HistoryBackCB.filter())
+async def back_to_period_choice(call: CallbackQuery, db) -> None:
+    lang = await users_repo.get_effective_language(db, call.from_user.id)
+    await call.message.edit_text(t(lang, "history_choose_period"), reply_markup=history_period_keyboard(lang))
     await call.answer()
 
 

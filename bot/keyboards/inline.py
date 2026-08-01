@@ -61,6 +61,10 @@ class AddPastEntryCB(CallbackData, prefix="addpast"):
     date: str  # ISO date to log a missed entry against
 
 
+class HistoryBackCB(CallbackData, prefix="historyback"):
+    pass
+
+
 GENDER_VALUES = ("male", "female")
 ACTIVITY_VALUES = ("sedentary", "light", "moderate", "high", "very_high")
 GOAL_VALUES = ("loss", "gain", "maintain")
@@ -175,20 +179,18 @@ def history_period_keyboard(lang: str) -> InlineKeyboardMarkup:
     )
 
 
-def history_add_entry_keyboard(dates: list[str], lang: str) -> InlineKeyboardMarkup | None:
-    if not dates:
-        return None
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=t(lang, "history_add_entry_button", date=date),
-                    callback_data=AddPastEntryCB(date=date).pack(),
-                )
-            ]
-            for date in dates
+def history_report_keyboard(dates: list[str], lang: str) -> InlineKeyboardMarkup:
+    rows = [
+        [
+            InlineKeyboardButton(
+                text=t(lang, "history_add_entry_button", date=date),
+                callback_data=AddPastEntryCB(date=date).pack(),
+            )
         ]
-    )
+        for date in dates
+    ]
+    rows.append([InlineKeyboardButton(text=t(lang, "history_back_button"), callback_data=HistoryBackCB().pack())])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def weight_checkin_keyboard(lang: str) -> InlineKeyboardMarkup:
